@@ -1,0 +1,95 @@
+version: '3'
+services :
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9094,OUTSIDE://192.168.0.128:9092
+      KAFKA_LISTENERS: INSIDE://:9094,OUTSIDE://:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_CREATE_TOPICS: "email_events:1:1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_BROKER_ID: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  users:
+    build: ./users-service
+    container_name: users-service
+    environment:
+        - MONGO_HOST=mongo        
+    links:      
+      - mongo
+    depends_on:
+      - mongo
+    expose:
+      - "4001"
+    command: ["node", "dist/server.js"]
+  courses:
+    build: ./course-service
+    container_name: courses-service
+    environment:
+        - MONGO_HOST=mongo        
+    links:      
+      - mongo      
+    depends_on:
+      - mongo
+    expose:
+      - "4002"
+    command: ["node", "./dist/server.js"]
+  gateway:
+    build: ./api-gateway
+    container_name: gateway-service
+    environment:        
+        - COURSES=courses:4002
+        - USERS=users:4001   
+        # - RABBITMQ_DEFAULT_USER=admin   
+        # - RABBITMQ_DEFAULT_PASS=mypass
+        - KAFKA=kafka:9094
+    links:            
+      - courses
+      - users
+      - kafka            
+    depends_on:
+      - kafka    
+    ports:
+      - "3000:3000"   
+    command: ["node", "./dist/server.js"]
+  email:
+    build: ./email-service
+    container_name: email-service
+    environment:        
+        - KAFKA=kafka:9094
+    links:      
+      - kafka      
+    depends_on:
+      - kafka    
+    ports:
+      - "4003:4003"  
+    command: ["npm", "run","start:dev"]                  
+  frontend:
+    build: ./frontend
+    container_name: frontend        
+    environment: 
+      - PORT=3030
+    links:      
+      - kafka 
+    ports:
+      - "3030:3030"
+      - "3031:3031"             
+    command: ["npm", "start"]                        
+  mongo:
+    container_name: mongo
+    image: mongo
+    # volumes:
+    #   - ./data:/data/db
+    expose:
+      - "27017"
