@@ -1,23 +1,6 @@
 # Microservicios 
 
-Este es un pequeño ejemplo de microservicios en NodeJS con 
-base de datos MONGODB, 
-
-Estos microservicios se comunican entre ellos via Rest Api
-y por el protocolo AMQP con ayuda de RabbitMQ 
-
-## Configuración
-
-En la carpeta email-service/src/config contiene el archivo config.ts , ahi esta la configuración para el envio de Correos, configurela con su cuenta Gmail.
-
-```
-email:{
-        'service':'Gmail',
-        'userEmail':'xxxxxxx@gmail.com',
-        'userPass':'xxxxxxx',
-        host:'localhost',
-    },
-```
+Este es un pequeño ejemplo de microservicios en NodeJS, Nestjs, MongoDB y Kafka
 
 ## Instalación
 
