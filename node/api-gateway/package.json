@@ -44,7 +44,7 @@
   "dependencies": {
     "amqplib": "^0.5.2",
     "async": "^2.1.2",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "body-parser": "^1.15.2",
     "cors": "^2.8.4",
     "ejs": "^2.5.7",
